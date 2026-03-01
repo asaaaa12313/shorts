@@ -1,0 +1,6 @@
+{
+  "installCommand": "npm install --prefix shortform-web/frontend",
+  "buildCommand": "npm run build --prefix shortform-web/frontend",
+  "outputDirectory": "shortform-web/frontend/.next",
+  "framework": "nextjs"
+}
