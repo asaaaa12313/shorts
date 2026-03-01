@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+
+# Build
+.next/
+
+# Environment
+.env
+!.env.example
+
+# OS
+.DS_Store
+
+# Output / temp files
+output/
+temp/
+uploads/
+
+# Raw clips (large files)
+raw_clips/
