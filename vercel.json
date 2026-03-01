@@ -1,6 +1,9 @@
 {
-  "installCommand": "cd shortform-web/frontend && npm install",
-  "buildCommand": "cd shortform-web/frontend && npm run build",
-  "outputDirectory": "shortform-web/frontend/.next",
-  "framework": "nextjs"
+  "version": 2,
+  "builds": [
+    {
+      "src": "shortform-web/frontend/package.json",
+      "use": "@vercel/next"
+    }
+  ]
 }
