@@ -1,9 +1,4 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "shortform-web/frontend/package.json",
-      "use": "@vercel/next"
-    }
-  ]
+  "buildCommand": "cd shortform-web/frontend && npm install && npm run build",
+  "outputDirectory": "shortform-web/frontend/out"
 }
