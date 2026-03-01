@@ -5,6 +5,7 @@ __pycache__/
 
 # Build
 .next/
+out/
 
 # Environment
 .env
