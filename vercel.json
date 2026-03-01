@@ -1,4 +1,0 @@
-{
-  "buildCommand": "cd shortform-web/frontend && npm install && npm run build",
-  "outputDirectory": "shortform-web/frontend/out"
-}
