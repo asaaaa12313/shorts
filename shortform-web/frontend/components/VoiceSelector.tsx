@@ -9,24 +9,24 @@ const EDGE_VOICES = [
 ];
 
 const ELEVENLABS_VOICES = [
-  // 여성 - 트렌디/소셜미디어
-  { id: "zgDzx5jLLCqEp6Fl7Kl7", label: "한나", gender: "여", desc: "자연스럽고 트렌디한", tag: "인기" },
-  { id: "9vTWeZwjAkqIiZJdCarV", label: "엠마", gender: "여", desc: "깔끔하고 프로페셔널", tag: "추천" },
-  { id: "iWLjl1zCuqXRkW6494ve", label: "지수", gender: "여", desc: "활기찬 뉴스 스타일", tag: "" },
-  { id: "Lb7qkOn5hF8p7qfCDH8q", label: "애니", gender: "여", desc: "부드럽고 사랑스러운", tag: "" },
-  { id: "8jHHF8rMqMlg8if2mOUe", label: "한", gender: "여", desc: "캐주얼 팟캐스트 느낌", tag: "" },
-  { id: "sf8Bpb1IU97NI9BHSMRf", label: "로사", gender: "여", desc: "차분하고 세련된", tag: "" },
-  { id: "0oqpliV6dVSr9XomngOW", label: "지니", gender: "여", desc: "지적이고 따뜻한", tag: "" },
-  { id: "AW5wrnG1jVizOYY7R1Oo", label: "지영", gender: "여", desc: "친근하고 자연스러운", tag: "" },
-  // 남성 - 트렌디/소셜미디어
-  { id: "m3gJBS8OofDJfycyA2Ip", label: "태형", gender: "남", desc: "친근한 소셜미디어", tag: "인기" },
-  { id: "pb3lVZVjdFWbkhPKlelB", label: "해리", gender: "남", desc: "부드럽고 편안한", tag: "추천" },
-  { id: "9rZOpKhfmFa6UIvpEi4C", label: "준혁", gender: "남", desc: "전문 성우 느낌", tag: "" },
-  { id: "WqVy7827vjE2r3jWvbnP", label: "혁", gender: "남", desc: "감성적인 나레이션", tag: "" },
-  { id: "nbrxrAz3eYm9NgojrmFK", label: "민준", gender: "남", desc: "차분하고 지적인", tag: "" },
-  { id: "jB1Cifc2UQbq1gR3wnb0", label: "빈", gender: "남", desc: "따뜻하고 진중한", tag: "" },
-  { id: "v1jVu1Ky28piIPEJqRrm", label: "데이빗", gender: "남", desc: "라디오 DJ 느낌", tag: "" },
-  { id: "4JJwo477JUAx3HV0T7n7", label: "요한", gender: "남", desc: "자신감있고 믿음직한", tag: "" },
+  // 여성 - premade (무료 API 사용 가능, 한국어 지원)
+  { id: "cgSgspJ2msm6clMCkdW9", label: "Jessica", gender: "여", desc: "밝고 따뜻한 대화체", tag: "추천" },
+  { id: "pFZP5JQG7iQjIQuC4Bku", label: "Lily", gender: "여", desc: "부드럽고 세련된", tag: "인기" },
+  { id: "EXAVITQu4vr4xnSDxMaL", label: "Sarah", gender: "여", desc: "프로페셔널 나레이션", tag: "" },
+  { id: "Xb7hH8MSUJpSbSDYk0k2", label: "Alice", gender: "여", desc: "또렷하고 교육적인", tag: "" },
+  { id: "XrExE9yKIg1WjnnlVkGX", label: "Matilda", gender: "여", desc: "전문적이고 활기찬", tag: "" },
+  { id: "FGY2WhTYpPnrIDTdsKH5", label: "Laura", gender: "여", desc: "트렌디한 소셜미디어", tag: "" },
+  { id: "jsCqWAovK2LkecY7zXl4", label: "Freya", gender: "여", desc: "차분하고 깊은", tag: "" },
+  { id: "hpp4J3VqNfWAUOO0d1Us", label: "Bella", gender: "여", desc: "밝고 프로페셔널", tag: "" },
+  // 남성 - premade (무료 API 사용 가능, 한국어 지원)
+  { id: "nPczCjzI2devNBz1zQrb", label: "Brian", gender: "남", desc: "깊고 편안한 나레이션", tag: "추천" },
+  { id: "TX3LPaxmHKxFdv7VOQHJ", label: "Liam", gender: "남", desc: "에너지 넘치는 크리에이터", tag: "인기" },
+  { id: "IKne3meq5aSn9XLyUdCD", label: "Charlie", gender: "남", desc: "깊고 자신감 넘치는", tag: "" },
+  { id: "iP95p4xoKVk53GoZ742B", label: "Chris", gender: "남", desc: "친근하고 캐주얼한", tag: "" },
+  { id: "cjVigY5qzO86Huf0OWal", label: "Eric", gender: "남", desc: "부드럽고 신뢰감", tag: "" },
+  { id: "onwK4e9ZLuTAKqWW03F9", label: "Daniel", gender: "남", desc: "차분한 방송인 스타일", tag: "" },
+  { id: "JBFqnCBsd6RMkjVDRZzb", label: "George", gender: "남", desc: "따뜻한 스토리텔러", tag: "" },
+  { id: "bIHbv24MWmeRgasZH58o", label: "Will", gender: "남", desc: "편안하고 낙천적인", tag: "" },
 ];
 
 interface Props {
@@ -91,7 +91,7 @@ export default function VoiceSelector({ enabled, onToggle, voiceId, onVoiceChang
 
           {ttsEngine === "elevenlabs" && (
             <>
-              <p className="text-xs text-amber-400/70 px-1">더 자연스럽고 사람 같은 음성</p>
+              <p className="text-xs text-amber-400/70 px-1">더 자연스럽고 사람 같은 AI 음성 (월 10,000자 무료)</p>
               {/* 성별 필터 */}
               <div className="flex gap-1">
                 {(["all", "여", "남"] as const).map(g => (

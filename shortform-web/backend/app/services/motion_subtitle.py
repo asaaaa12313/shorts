@@ -142,10 +142,10 @@ def _style_text(text: str, _index: int, base_color: tuple) -> list[dict]:
     if len(text) <= 6:
         if emphasis:
             return [{"segments": [
-                {"text": text, "size": 140, "color": emphasis["color"], "emphasis": True}
+                {"text": text, "size": 110, "color": emphasis["color"], "emphasis": True}
             ]}]
         return [{"segments": [
-            {"text": text, "size": 130, "color": base_color}
+            {"text": text, "size": 105, "color": base_color}
         ]}]
 
     # 강조 키워드가 있으면 세그먼트 분리
@@ -154,7 +154,7 @@ def _style_text(text: str, _index: int, base_color: tuple) -> list[dict]:
         idx = text.find(kw)
         before = text[:idx]
         after = text[idx + len(kw):]
-        base_size = 90
+        base_size = 80
 
         segments = []
         if before.strip():
@@ -316,11 +316,11 @@ def apply_effect(effect: str, t: float, has_emphasis: bool = False) -> dict:
     if has_emphasis:
         ep = min(t / 0.2, 1.0)  # 0.2초 동안 폭발
         if ep < 0.3:
-            fx["emphasis_scale"] = 2.0 - (ep / 0.3) * 0.7   # 2.0 → 1.3
+            fx["emphasis_scale"] = 1.4 - (ep / 0.3) * 0.2   # 1.4 → 1.2
         elif ep < 0.7:
-            fx["emphasis_scale"] = 1.3 - ((ep - 0.3) / 0.4) * 0.15  # 1.3 → 1.15
+            fx["emphasis_scale"] = 1.2 - ((ep - 0.3) / 0.4) * 0.1  # 1.2 → 1.1
         else:
-            fx["emphasis_scale"] = 1.15  # 약간 크게 유지
+            fx["emphasis_scale"] = 1.1  # 약간 크게 유지
         # 순간 플래시
         if ep < 0.12:
             fx["emphasis_flash"] = 1.0 - ep / 0.12
@@ -381,11 +381,25 @@ def _seg_color(seg: dict, fx: dict) -> tuple:
 def _render_line_segments(img: Image.Image, draw: ImageDraw.ImageDraw,
                           seg_data: list, base_y: int, line_h: int,
                           alpha: int, fx: dict) -> tuple[Image.Image, ImageDraw.ImageDraw]:
-    """한 줄의 세그먼트들을 렌더링 (중앙 정렬)"""
+    """한 줄의 세그먼트들을 렌더링 (중앙 정렬, 화면 초과 시 자동 축소)"""
     if not seg_data:
         return img, draw
 
     total_w = sum(sd["w"] for sd in seg_data) + 6 * max(len(seg_data) - 1, 0)
+    max_w = WIDTH - 2 * TEXT_MARGIN
+
+    # 화면 폭 초과 시 폰트 축소하여 재측정
+    if total_w > max_w:
+        shrink = max_w / total_w
+        for sd in seg_data:
+            seg = sd["seg"]
+            new_size = max(int(sd["font"].size * shrink), 20)
+            fp = seg.get("font_path", "")
+            sd["font"] = _get_font(new_size, fp or AVAILABLE_FONTS[0])
+            bbox = draw.textbbox((0, 0), seg["text"], font=sd["font"])
+            sd["w"], sd["h"] = bbox[2] - bbox[0], bbox[3] - bbox[1]
+        total_w = sum(sd["w"] for sd in seg_data) + 6 * max(len(seg_data) - 1, 0)
+        line_h = max(sd["h"] for sd in seg_data)
     needs_transform = fx["angle"] != 0.0
 
     if needs_transform:
