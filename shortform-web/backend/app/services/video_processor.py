@@ -12,7 +12,8 @@ TRANSITIONS = [
     "fade", "slideright", "slideleft", "slideup", "slidedown",
     "circlecrop", "dissolve", "smoothleft", "smoothright", "fadeblack",
 ]
-TRANSITION_DURATION = 0.3  # 초
+TRANSITION_DURATION = 0.4  # 초
+MIN_CLIP_DURATION = 2.5  # 클립 최소 표시 시간 (초)
 
 # --- 줌 효과 ---
 ZOOM_AMOUNT = 0.08  # 8%
@@ -153,6 +154,14 @@ def combine_clips(clip_paths: list[str], target_duration: float = TARGET_DURATIO
     job_dir.mkdir(exist_ok=True)
 
     n = len(clip_paths)
+
+    # 클립 최소 길이 보장: 클립이 너무 많으면 줄이기
+    max_clips = max(1, int(target_duration / MIN_CLIP_DURATION))
+    if n > max_clips:
+        step = len(clip_paths) / max_clips
+        clip_paths = [clip_paths[int(i * step)] for i in range(max_clips)]
+        n = len(clip_paths)
+
     use_transitions = n >= 2
     td = TRANSITION_DURATION if use_transitions else 0
 
@@ -195,12 +204,15 @@ def combine_clips(clip_paths: list[str], target_duration: float = TARGET_DURATIO
     for i in range(n - 1):
         in1 = f"[{i}:v]" if i == 0 else f"[v{i}]"
         in2 = f"[{i + 1}:v]"
-        out_label = f"[v{i + 1}]" if i < n - 2 else "[vout]"
+        is_last = i == n - 2
+        out_label = "[xout]" if is_last else f"[v{i + 1}]"
         t = trans_list[i % len(trans_list)]
         offset = round((i + 1) * (clip_duration - td), 3)
         vfilters.append(
             f"{in1}{in2}xfade=transition={t}:duration={td}:offset={offset}{out_label}"
         )
+    # xfade 체인 후 PTS를 0부터 시작하도록 리셋
+    vfilters.append("[xout]setpts=PTS-STARTPTS[vout]")
 
     filter_complex = ";\n".join(vfilters)
 

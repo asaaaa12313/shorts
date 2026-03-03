@@ -7,10 +7,32 @@ import srt
 import edge_tts
 
 
-async def _tts_segment(text: str, voice: str, rate: str, output_path: str):
-    """한 줄의 텍스트를 음성으로 변환"""
-    communicate = edge_tts.Communicate(text, voice=voice, rate=rate)
-    await communicate.save(output_path)
+async def _tts_all_segments(entries, voice: str, rate: str, tmpdir: str) -> list:
+    """모든 자막 줄을 한 이벤트 루프에서 순차 변환"""
+    seg_files = []
+    for i, entry in enumerate(entries):
+        text = entry.content.replace("\n", " ").strip()
+        if not text:
+            continue
+        seg_path = os.path.join(tmpdir, f"seg_{i:03d}.mp3")
+        communicate = edge_tts.Communicate(text, voice=voice, rate=rate)
+        await communicate.save(seg_path)
+        start_ms = int(entry.start.total_seconds() * 1000)
+        seg_files.append((seg_path, start_ms))
+    return seg_files
+
+
+def _run_async(coro):
+    """Celery 데몬 프로세스에서도 안전하게 async 실행"""
+    try:
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor() as pool:
+                return pool.submit(asyncio.run, coro).result()
+        return loop.run_until_complete(coro)
+    except RuntimeError:
+        return asyncio.run(coro)
 
 
 def generate_tts(srt_content: str, output_path: str, duration: float,
@@ -28,15 +50,7 @@ def generate_tts(srt_content: str, output_path: str, duration: float,
 
     try:
         # 1. 각 자막 줄을 개별 음성 파일로 변환
-        seg_files = []
-        for i, entry in enumerate(entries):
-            text = entry.content.replace("\n", " ").strip()
-            if not text:
-                continue
-            seg_path = os.path.join(tmpdir, f"seg_{i:03d}.mp3")
-            asyncio.run(_tts_segment(text, voice, rate, seg_path))
-            start_ms = int(entry.start.total_seconds() * 1000)
-            seg_files.append((seg_path, start_ms))
+        seg_files = _run_async(_tts_all_segments(entries, voice, rate, tmpdir))
 
         if not seg_files:
             return ""

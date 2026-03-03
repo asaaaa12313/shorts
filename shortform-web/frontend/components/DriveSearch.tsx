@@ -21,16 +21,25 @@ export default function DriveSearch({ onSelect }: Props) {
   const [clips, setClips] = useState<Clip[]>([]);
   const [selectedClips, setSelectedClips] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [searched, setSearched] = useState(false);
 
   const search = async () => {
     setLoading(true);
+    setError("");
+    setSearched(false);
     try {
       const res = await fetch(`${API_URL}/api/drive/search?q=${encodeURIComponent(query)}`);
+      if (!res.ok) throw new Error(`서버 오류 (${res.status})`);
       const data = await res.json();
       setResults(data.businesses || []);
       setSelectedBiz("");
       setClips([]);
       setSelectedClips([]);
+      setSearched(true);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "검색 중 오류가 발생했습니다. 백엔드 서버를 확인해주세요.");
+      setResults([]);
     } finally {
       setLoading(false);
     }
@@ -39,11 +48,16 @@ export default function DriveSearch({ onSelect }: Props) {
   const loadClips = async (bizName: string) => {
     setSelectedBiz(bizName);
     setLoading(true);
+    setError("");
     try {
       const res = await fetch(`${API_URL}/api/drive/clips/${encodeURIComponent(bizName)}`);
+      if (!res.ok) throw new Error(`서버 오류 (${res.status})`);
       const data = await res.json();
       setClips(data.clips || []);
       setSelectedClips((data.clips || []).map((c: Clip) => c.path));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "영상 목록을 불러오는 중 오류가 발생했습니다.");
+      setSelectedBiz("");
     } finally {
       setLoading(false);
     }
@@ -81,6 +95,16 @@ export default function DriveSearch({ onSelect }: Props) {
           {loading ? "..." : "검색"}
         </button>
       </div>
+
+      {/* 에러 메시지 */}
+      {error && (
+        <p className="text-red-400 text-sm bg-red-900/20 px-3 py-2 rounded-lg">{error}</p>
+      )}
+
+      {/* 검색 결과 없음 */}
+      {searched && results.length === 0 && !error && !loading && (
+        <p className="text-gray-500 text-sm">검색 결과가 없습니다</p>
+      )}
 
       {/* 검색 결과 */}
       {results.length > 0 && !selectedBiz && (

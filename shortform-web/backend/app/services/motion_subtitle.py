@@ -3,7 +3,8 @@ import math
 import os
 import random
 import srt
-from multiprocessing import Pool, cpu_count
+from concurrent.futures import ThreadPoolExecutor
+from os import cpu_count
 from PIL import Image, ImageDraw, ImageFont
 from app.core.config import WIDTH, HEIGHT, FPS, FONTS_DIR
 
@@ -467,7 +468,7 @@ def generate_frames(srt_content: str, duration: float, output_dir: str,
     args = [(i, subtitles, output_dir) for i in range(total_frames)]
 
     if workers > 1:
-        with Pool(workers) as pool:
+        with ThreadPoolExecutor(max_workers=workers) as pool:
             pool.map(_render_frame, args)
     else:
         for a in args:
