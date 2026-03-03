@@ -1,7 +1,7 @@
 """API 엔드포인트"""
 import uuid
 import datetime
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from app.core.config import UPLOAD_DIR, OUTPUT_DIR
@@ -32,15 +32,6 @@ class GenerateRequest(BaseModel):
     gdrive_clip_paths: list[str] = []
 
 
-class AddSubtitleRequest(BaseModel):
-    video_filename: str  # output/에 있는 영상 파일명
-    subtitle_text: str
-    business_name: str = "output"
-    subtitle_effect: str = ""
-    subtitle_color: str = ""
-    voice_enabled: bool = False
-    voice_id: str = ""
-    tts_engine: str = "edge"
 
 
 class JobStatus(BaseModel):
@@ -145,16 +136,30 @@ async def generate_shortform(req: GenerateRequest):
 # --- 자막 나중에 입히기 ---
 
 @router.post("/add-subtitle")
-async def add_subtitle(req: AddSubtitleRequest):
-    """기존 영상에 자막만 입히기"""
-    filepath = OUTPUT_DIR / req.video_filename
-    if not filepath.exists():
-        raise HTTPException(status_code=404, detail="영상 파일을 찾을 수 없습니다")
+async def add_subtitle(
+    file: UploadFile = File(...),
+    subtitle_text: str = Form(...),
+    business_name: str = Form("output"),
+    subtitle_effect: str = Form(""),
+    subtitle_color: str = Form(""),
+    voice_enabled: str = Form("false"),
+    voice_id: str = Form(""),
+    tts_engine: str = Form("edge"),
+):
+    """업로드된 영상에 자막 입히기"""
+    job_id = str(uuid.uuid4())[:8]
+    job_dir = UPLOAD_DIR / job_id
+    job_dir.mkdir(parents=True, exist_ok=True)
+
+    filepath = str(job_dir / (file.filename or "video.mp4"))
+    with open(filepath, "wb") as f:
+        content = await file.read()
+        f.write(content)
 
     task = process_add_subtitle.delay(
-        str(filepath), req.subtitle_text, req.business_name,
-        req.subtitle_effect, req.subtitle_color,
-        req.voice_enabled, req.voice_id, req.tts_engine,
+        filepath, subtitle_text, business_name,
+        subtitle_effect, subtitle_color,
+        voice_enabled.lower() == "true", voice_id, tts_engine,
     )
     return {"task_id": task.id, "status": "started"}
 

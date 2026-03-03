@@ -7,8 +7,6 @@ import BusinessTypeSelector from "@/components/BusinessTypeSelector";
 import SubtitleEffectSelector from "@/components/SubtitleEffectSelector";
 import SubtitleColorSelector from "@/components/SubtitleColorSelector";
 import VoiceSelector from "@/components/VoiceSelector";
-import VideoSelector from "@/components/VideoSelector";
-import OutputHistory from "@/components/OutputHistory";
 import ProgressBar from "@/components/ProgressBar";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -38,8 +36,7 @@ export default function Home() {
   const [ttsEngine, setTtsEngine] = useState("edge");
 
   // --- 자막 입히기 탭 ---
-  const [existingVideos, setExistingVideos] = useState<{ filename: string; size_mb: number; created_at: string }[]>([]);
-  const [selectedVideo, setSelectedVideo] = useState("");
+  const [addSubFile, setAddSubFile] = useState<File | null>(null);
   const [addSubText, setAddSubText] = useState("");
 
   // --- 공통 ---
@@ -54,16 +51,6 @@ export default function Home() {
   useEffect(() => {
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, []);
-
-  // 자막 입히기 탭 열 때 기존 영상 목록 로드
-  useEffect(() => {
-    if (activeTab === "add_sub") {
-      fetch(`${API_URL}/api/output/list`)
-        .then((r) => r.json())
-        .then((data) => setExistingVideos(data.files || []))
-        .catch(() => {});
-    }
-  }, [activeTab]);
 
   const handleDriveSelect = (bizName: string, paths: string[]) => {
     setDriveBusiness(bizName);
@@ -149,25 +136,25 @@ export default function Home() {
   };
 
   const handleAddSubtitle = async () => {
-    if (!selectedVideo || !addSubText.trim()) return;
+    if (!addSubFile || !addSubText.trim()) return;
     setPhase("processing");
     setProgress(0);
     setStep("subtitles");
 
     try {
+      const formData = new FormData();
+      formData.append("file", addSubFile);
+      formData.append("subtitle_text", addSubText);
+      formData.append("business_name", businessName || "output");
+      formData.append("subtitle_effect", subtitleEffect);
+      formData.append("subtitle_color", subtitleColor);
+      formData.append("voice_enabled", String(voiceEnabled));
+      formData.append("voice_id", voiceId);
+      formData.append("tts_engine", ttsEngine);
+
       const res = await fetch(`${API_URL}/api/add-subtitle`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          video_filename: selectedVideo,
-          subtitle_text: addSubText,
-          business_name: businessName || "output",
-          subtitle_effect: subtitleEffect,
-          subtitle_color: subtitleColor,
-          voice_enabled: voiceEnabled,
-          voice_id: voiceId,
-          tts_engine: ttsEngine,
-        }),
+        body: formData,
       });
       if (!res.ok) throw new Error("요청 실패");
       const { task_id } = await res.json();
@@ -198,7 +185,7 @@ export default function Home() {
     setStep("");
     setResultFilename("");
     setErrorMsg("");
-    setSelectedVideo("");
+    setAddSubFile(null);
     setAddSubText("");
   };
 
@@ -348,8 +335,35 @@ export default function Home() {
           {activeTab === "add_sub" && (
             <div className="space-y-6">
               <section>
-                <h2 className="text-lg font-semibold mb-3">1. 영상 선택</h2>
-                <VideoSelector videos={existingVideos} selected={selectedVideo} onSelect={setSelectedVideo} />
+                <h2 className="text-lg font-semibold mb-3">1. 영상 업로드</h2>
+                <p className="text-xs text-yellow-400/70 mb-3">원본 영상에 이미 자막이 있는 경우 새 자막과 겹칠 수 있습니다</p>
+                <label className={`block w-full border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors
+                  ${addSubFile ? "border-purple-500 bg-purple-600/10" : "border-gray-600 hover:border-gray-500 bg-gray-800/50"}`}>
+                  <input
+                    type="file"
+                    accept="video/*"
+                    className="hidden"
+                    onChange={(e) => setAddSubFile(e.target.files?.[0] || null)}
+                  />
+                  {addSubFile ? (
+                    <div>
+                      <video
+                        src={URL.createObjectURL(addSubFile)}
+                        className="w-full max-w-xs mx-auto rounded-lg mb-3"
+                        style={{ aspectRatio: "9/16", maxHeight: "200px", objectFit: "cover" }}
+                        muted
+                        preload="metadata"
+                      />
+                      <p className="text-sm text-gray-300">{addSubFile.name}</p>
+                      <p className="text-xs text-gray-500 mt-1">{(addSubFile.size / 1024 / 1024).toFixed(1)}MB</p>
+                    </div>
+                  ) : (
+                    <div>
+                      <p className="text-gray-400 text-sm">클릭하여 영상 파일을 선택하세요</p>
+                      <p className="text-gray-500 text-xs mt-1">MP4, MOV 등</p>
+                    </div>
+                  )}
+                </label>
               </section>
 
               <section>
@@ -398,9 +412,9 @@ export default function Home() {
 
               <button
                 onClick={handleAddSubtitle}
-                disabled={!selectedVideo || !addSubText.trim()}
+                disabled={!addSubFile || !addSubText.trim()}
                 className={`w-full py-3 rounded-xl text-lg font-bold transition-colors
-                  ${selectedVideo && addSubText.trim()
+                  ${addSubFile && addSubText.trim()
                     ? "bg-purple-600 hover:bg-purple-500"
                     : "bg-gray-700 text-gray-500 cursor-not-allowed"}`}
               >
@@ -409,7 +423,6 @@ export default function Home() {
             </div>
           )}
 
-          <OutputHistory refreshKey={resultFilename} />
         </>
       )}
 
