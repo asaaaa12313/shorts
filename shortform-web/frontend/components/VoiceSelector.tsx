@@ -2,9 +2,8 @@
 
 const VOICES = [
   { id: "ko-KR-SunHiNeural", label: "선희", gender: "여", desc: "밝고 친근" },
-  { id: "ko-KR-SeoHyeonNeural", label: "서현", gender: "여", desc: "차분한 나레이션" },
-  { id: "ko-KR-HyunsuNeural", label: "현수", gender: "남", desc: "자연스러운" },
   { id: "ko-KR-InJoonNeural", label: "인준", gender: "남", desc: "친근한" },
+  { id: "ko-KR-HyunsuMultilingualNeural", label: "현수", gender: "남", desc: "자연스러운" },
 ];
 
 interface Props {

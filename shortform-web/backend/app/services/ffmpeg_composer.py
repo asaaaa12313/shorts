@@ -63,13 +63,13 @@ def compose(video_path: str, frames_dir: str, bgm_path: str,
             f"volume={bgm_vol}[bgm]"
         )
 
-    # TTS 오디오 필터
+    # TTS 오디오 필터 (볼륨 높여서 명확하게)
     if has_tts:
-        filter_parts.append(f"[{tts_idx}:a]volume=0.9[tts]")
+        filter_parts.append(f"[{tts_idx}:a]volume=1.8[tts]")
 
     # 오디오 믹싱
     if has_bgm and has_tts:
-        filter_parts.append("[bgm][tts]amix=inputs=2:duration=first[aout]")
+        filter_parts.append("[bgm][tts]amix=inputs=2:duration=first:normalize=0[aout]")
         audio_map = ["-map", "[aout]"]
     elif has_bgm and not has_tts:
         if source_has_audio:
