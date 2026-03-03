@@ -26,6 +26,7 @@ class GenerateRequest(BaseModel):
     subtitle_color: str = ""   # 자막 색상 (neon, warm, cool, pastel, rainbow, gold, pink, mint)
     voice_enabled: bool = False  # AI 음성 나레이션 ON/OFF
     voice_id: str = ""  # 음성 ID (ko-KR-SunHiNeural 등)
+    tts_engine: str = "edge"  # "edge" (무료) | "elevenlabs" (프리미엄)
     # Google Drive에서 직접 가져올 때
     gdrive_business: str = ""
     gdrive_clip_paths: list[str] = []
@@ -39,6 +40,7 @@ class AddSubtitleRequest(BaseModel):
     subtitle_color: str = ""
     voice_enabled: bool = False
     voice_id: str = ""
+    tts_engine: str = "edge"
 
 
 class JobStatus(BaseModel):
@@ -132,6 +134,7 @@ async def generate_shortform(req: GenerateRequest):
         "subtitle_color": req.subtitle_color,
         "voice_enabled": req.voice_enabled,
         "voice_id": req.voice_id,
+        "tts_engine": req.tts_engine,
     }
 
     task = process_shortform.delay(job_id, clip_paths, options)
@@ -151,7 +154,7 @@ async def add_subtitle(req: AddSubtitleRequest):
     task = process_add_subtitle.delay(
         str(filepath), req.subtitle_text, req.business_name,
         req.subtitle_effect, req.subtitle_color,
-        req.voice_enabled, req.voice_id,
+        req.voice_enabled, req.voice_id, req.tts_engine,
     )
     return {"task_id": task.id, "status": "started"}
 

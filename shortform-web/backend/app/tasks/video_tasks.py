@@ -60,6 +60,7 @@ def process_shortform(self, job_id: str, clip_paths: list[str], options: dict) -
             tts_gen.generate_tts(
                 srt_content, tts_path, TARGET_DURATION,
                 voice=options.get("voice_id") or "ko-KR-SunHiNeural",
+                engine=options.get("tts_engine", "edge"),
             )
 
         # 3. BGM 선택
@@ -119,7 +120,7 @@ def process_shortform(self, job_id: str, clip_paths: list[str], options: dict) -
 
 
 @celery_app.task(bind=True)
-def process_add_subtitle(self, video_path: str, subtitle_text: str, business_name: str, subtitle_effect: str = "", subtitle_color: str = "", voice_enabled: bool = False, voice_id: str = "") -> dict:
+def process_add_subtitle(self, video_path: str, subtitle_text: str, business_name: str, subtitle_effect: str = "", subtitle_color: str = "", voice_enabled: bool = False, voice_id: str = "", tts_engine: str = "edge") -> dict:
     """기존 영상에 자막만 입히기"""
     import uuid
     job_id = str(uuid.uuid4())[:8]
@@ -156,6 +157,7 @@ def process_add_subtitle(self, video_path: str, subtitle_text: str, business_nam
             tts_gen.generate_tts(
                 srt_content, tts_path, duration,
                 voice=voice_id or "ko-KR-SunHiNeural",
+                engine=tts_engine,
             )
 
         # 4. 합성 (자막 + TTS 오버레이)

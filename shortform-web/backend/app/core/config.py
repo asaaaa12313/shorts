@@ -20,6 +20,9 @@ TEMP_DIR.mkdir(exist_ok=True)
 # Gemini API
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 
+# ElevenLabs TTS
+ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY", "")
+
 # 영상 설정
 TARGET_DURATION = 15.0
 WIDTH = 1080

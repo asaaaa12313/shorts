@@ -22,7 +22,7 @@ PROMPT = """
 
 [출력 구조]
 - 반드시 표준 SRT 파일 형식으로만 출력하세요. (번호, 타임코드, 텍스트)
-- 타임코드는 1.5초~2.5초 간격으로 짧고 빠르게 넘어가도록 설정하세요.
+- 타임코드는 2.0초~3.0초 간격으로 설정하고, 각 자막 사이에 0.3초 이상의 빈 구간(호흡)을 두세요.
 - 영상 전체 길이(15초 내외)에 맞게 자막을 분배하세요.
 - SRT 형식 외에 다른 부연 설명이나 마크다운 태그도 포함하지 마세요.
 """
@@ -99,12 +99,13 @@ def generate_subtitles(video_path: str, output_srt_path: str, api_key: str = "",
 
 
 def _storytelling_timing(n_lines: int, duration: float) -> list[tuple[float, float]]:
-    """후킹→설명→CTA 구조의 타이밍 분배"""
+    """후킹→설명→CTA 구조의 타이밍 분배 (문장 간 0.3초 호흡 포함)"""
+    gap = 0.3  # 문장 간 호흡 시간
     if n_lines == 1:
         return [(0, duration)]
     if n_lines == 2:
         mid = duration * 0.4
-        return [(0, mid), (mid, duration)]
+        return [(0, mid - gap), (mid, duration - gap)]
 
     # 3줄 이상: 첫줄(후킹) 20% / 중간줄들(설명) 60% 균등 / 마지막줄(CTA) 20%
     hook_end = duration * 0.2
@@ -112,12 +113,12 @@ def _storytelling_timing(n_lines: int, duration: float) -> list[tuple[float, flo
     mid_count = n_lines - 2
     mid_interval = (cta_start - hook_end) / mid_count
 
-    timings = [(0, hook_end)]
+    timings = [(0, hook_end - gap)]
     for i in range(mid_count):
         s = hook_end + i * mid_interval
         e = s + mid_interval
-        timings.append((s, e))
-    timings.append((cta_start, duration))
+        timings.append((s, e - gap))
+    timings.append((cta_start, duration - gap))
     return timings
 
 

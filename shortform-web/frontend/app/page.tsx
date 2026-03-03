@@ -35,6 +35,7 @@ export default function Home() {
   const [subtitleColor, setSubtitleColor] = useState("");
   const [voiceEnabled, setVoiceEnabled] = useState(false);
   const [voiceId, setVoiceId] = useState("ko-KR-SunHiNeural");
+  const [ttsEngine, setTtsEngine] = useState("edge");
 
   // --- 자막 입히기 탭 ---
   const [existingVideos, setExistingVideos] = useState<{ filename: string; size_mb: number; created_at: string }[]>([]);
@@ -123,6 +124,7 @@ export default function Home() {
         subtitle_color: subtitleColor,
         voice_enabled: voiceEnabled,
         voice_id: voiceId,
+        tts_engine: ttsEngine,
       };
 
       if (sourceMode === "drive") {
@@ -164,6 +166,7 @@ export default function Home() {
           subtitle_color: subtitleColor,
           voice_enabled: voiceEnabled,
           voice_id: voiceId,
+          tts_engine: ttsEngine,
         }),
       });
       if (!res.ok) throw new Error("요청 실패");
@@ -190,6 +193,7 @@ export default function Home() {
     setSubtitleColor("");
     setVoiceEnabled(false);
     setVoiceId("ko-KR-SunHiNeural");
+    setTtsEngine("edge");
     setProgress(0);
     setStep("");
     setResultFilename("");
@@ -322,6 +326,8 @@ export default function Home() {
                         onToggle={setVoiceEnabled}
                         voiceId={voiceId}
                         onVoiceChange={setVoiceId}
+                        ttsEngine={ttsEngine}
+                        onEngineChange={setTtsEngine}
                       />
                     </div>
                   </>
@@ -374,6 +380,8 @@ export default function Home() {
                   onToggle={setVoiceEnabled}
                   voiceId={voiceId}
                   onVoiceChange={setVoiceId}
+                  ttsEngine={ttsEngine}
+                  onEngineChange={setTtsEngine}
                 />
               </section>
 
