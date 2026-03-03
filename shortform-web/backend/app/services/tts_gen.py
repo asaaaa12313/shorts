@@ -20,15 +20,15 @@ async def _edge_tts_segments(entries, voice: str, rate: str, tmpdir: str) -> lis
             continue
         seg_path = os.path.join(tmpdir, f"seg_{i:03d}.mp3")
 
-        # 첫 번째 자막: 밝고 높은 톤 (후킹)
-        # 마지막 자막: 약간 느리고 강조 (CTA)
-        # 중간: 밝은 기본 톤
+        # 첫 번째 자막: 밝고 높은 톤 (후킹) - 신나게
+        # 마지막 자막: 강조하되 업된 톤 유지 (CTA)
+        # 중간: 밝고 활기찬 톤
         if i == 0:
-            pitch, seg_rate = "+8Hz", "+5%"
+            pitch, seg_rate = "+15Hz", "+10%"
         elif i == len(entries) - 1:
-            pitch, seg_rate = "+3Hz", "-3%"
-        else:
             pitch, seg_rate = "+5Hz", rate
+        else:
+            pitch, seg_rate = "+10Hz", "+3%"
 
         communicate = edge_tts.Communicate(text, voice=voice, rate=seg_rate, pitch=pitch)
         await communicate.save(seg_path)
@@ -75,9 +75,9 @@ def _elevenlabs_segments(entries, voice_id: str, tmpdir: str) -> list:
             model_id="eleven_multilingual_v2",
             output_format="mp3_44100_128",
             voice_settings={
-                "stability": 0.3,           # 낮을수록 감정 표현 풍부
-                "similarity_boost": 0.8,     # 음색 일관성
-                "style": 0.7,               # 스타일 표현력 (발랄함)
+                "stability": 0.2,           # 낮을수록 감정 표현 풍부
+                "similarity_boost": 0.75,    # 음색 일관성
+                "style": 0.9,               # 스타일 표현력 (발랄함 극대화)
                 "use_speaker_boost": True,
             },
         )
@@ -136,7 +136,9 @@ def _mix_segments(seg_files: list, duration: float, output_path: str) -> str:
     mix_inputs = "".join(f"[a{i}]" for i in range(len(seg_files)))
     filter_parts.append(
         f"{mix_inputs}amix=inputs={len(seg_files)}:duration=longest,"
-        f"atrim=0:{duration},aformat=sample_rates=44100:channel_layouts=mono[out]"
+        f"atrim=0:{duration},"
+        f"equalizer=f=5000:t=h:width_type=h:width=2000:g=3,"
+        f"aformat=sample_rates=44100:channel_layouts=mono[out]"
     )
 
     filter_str = ";\n".join(filter_parts)

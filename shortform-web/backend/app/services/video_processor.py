@@ -11,12 +11,17 @@ from app.core.config import WIDTH, HEIGHT, FPS, TARGET_DURATION, TEMP_DIR
 TRANSITIONS = [
     "fade", "slideright", "slideleft", "slideup", "slidedown",
     "circlecrop", "dissolve", "smoothleft", "smoothright", "fadeblack",
+    "wipeleft", "wiperight", "wipeup", "wipedown",
+    "radial", "squeezeh", "squeezev", "hlslice", "hrslice",
 ]
-TRANSITION_DURATION = 0.4  # 초
-MIN_CLIP_DURATION = 2.5  # 클립 최소 표시 시간 (초)
+TRANSITION_DURATION = 0.3  # 초 (빠른 전환)
+MIN_CLIP_DURATION = 2.0  # 클립 최소 표시 시간 (초)
 
 # --- 줌 효과 ---
-ZOOM_AMOUNT = 0.08  # 8%
+ZOOM_AMOUNT = 0.12  # 12%
+
+# --- 속도 변화 ---
+SPEED_EFFECTS = [1.0, 1.0, 1.0, 0.8, 1.2]  # 60% 기본, 20% 슬로모션, 20% 빠르기
 
 
 def _probe_clip(path: str) -> dict:
@@ -94,8 +99,9 @@ def _zoom_filter(effect: str, duration: float) -> str:
 
 
 def _process_single_clip(path: str, index: int, clip_duration: float,
-                          job_dir: Path, zoom_effect: str) -> str:
-    """단일 클립: 리사이즈 + 트림 + 줌 효과. 오디오 제거 (BGM으로 대체)."""
+                          job_dir: Path, zoom_effect: str,
+                          speed: float = 1.0) -> str:
+    """단일 클립: 리사이즈 + 트림 + 줌 + 속도변화. 오디오 제거 (BGM으로 대체)."""
     out = str(job_dir / f"clip_{index}.mp4")
     info = _probe_clip(path)
     orig_w, orig_h = info["width"] or 1920, info["height"] or 1080
@@ -107,6 +113,7 @@ def _process_single_clip(path: str, index: int, clip_duration: float,
     duration = min(clip_duration, max(max_usable, orig_dur * 0.5))  # 최소 50%는 사용
 
     zoom_f = _zoom_filter(zoom_effect, duration)
+    speed_f = f"setpts={1/speed}*PTS" if speed != 1.0 else ""
 
     if orig_w > orig_h:
         # 가로 영상 → 블러 배경 + 중앙 배치
@@ -118,8 +125,9 @@ def _process_single_clip(path: str, index: int, clip_duration: float,
             f"pad={WIDTH}:{HEIGHT}:(ow-iw)/2:(oh-ih)/2:color=black@0[fgout];"
             f"[bgout][fgout]overlay=0:0"
         )
-        if zoom_f:
-            vf += f",{zoom_f}"
+        extras = [f for f in [zoom_f, speed_f] if f]
+        if extras:
+            vf += "," + ",".join(extras)
         cmd = [
             "ffmpeg", "-y", "-ss", str(start), "-i", path,
             "-t", str(duration),
@@ -131,8 +139,9 @@ def _process_single_clip(path: str, index: int, clip_duration: float,
         # 세로 영상
         vf = (f"scale={WIDTH}:{HEIGHT}:force_original_aspect_ratio=decrease,"
               f"pad={WIDTH}:{HEIGHT}:(ow-iw)/2:(oh-ih)/2:color=black")
-        if zoom_f:
-            vf += f",{zoom_f}"
+        extras = [f for f in [zoom_f, speed_f] if f]
+        if extras:
+            vf += "," + ",".join(extras)
         cmd = [
             "ffmpeg", "-y", "-ss", str(start), "-i", path,
             "-t", str(duration), "-vf", vf,
@@ -179,10 +188,14 @@ def combine_clips(clip_paths: list[str], target_duration: float = TARGET_DURATIO
         else:
             zoom_effects.append("zoom_in" if i % 2 == 0 else "zoom_out")
 
+    # 속도 변화 랜덤 할당
+    speed_effects = [random.choice(SPEED_EFFECTS) for _ in range(n)]
+
     # 1. 개별 클립 처리
     processed = []
     for i, path in enumerate(clip_paths):
-        out = _process_single_clip(path, i, clip_duration, job_dir, zoom_effects[i])
+        out = _process_single_clip(path, i, clip_duration, job_dir,
+                                   zoom_effects[i], speed_effects[i])
         processed.append(out)
 
     combined_path = str(job_dir / "combined.mp4")
