@@ -24,7 +24,7 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY", "")
 
 # 영상 설정
-TARGET_DURATION = 15.0
+TARGET_DURATION = 15.0  # 기본값 (프론트엔드에서 15~20 선택 가능)
 WIDTH = 1080
 HEIGHT = 1920
 FPS = 30

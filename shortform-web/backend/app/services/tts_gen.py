@@ -11,7 +11,7 @@ from app.core.config import ELEVENLABS_API_KEY
 
 # ========== edge-tts ==========
 
-async def _edge_tts_segments(entries, voice: str, rate: str, tmpdir: str) -> list:
+async def _edge_tts_segments(entries, voice: str, tmpdir: str) -> list:
     """edge-tts: 피치/속도 조절로 발랄한 톤 적용"""
     seg_files = []
     for i, entry in enumerate(entries):
@@ -24,11 +24,11 @@ async def _edge_tts_segments(entries, voice: str, rate: str, tmpdir: str) -> lis
         # 마지막 자막: 강조하되 업된 톤 유지 (CTA)
         # 중간: 밝고 활기찬 톤
         if i == 0:
-            pitch, seg_rate = "+15Hz", "+10%"
+            pitch, seg_rate = "+20Hz", "+15%"
         elif i == len(entries) - 1:
-            pitch, seg_rate = "+5Hz", rate
+            pitch, seg_rate = "+8Hz", "-3%"
         else:
-            pitch, seg_rate = "+10Hz", "+3%"
+            pitch, seg_rate = "+12Hz", "+5%"
 
         communicate = edge_tts.Communicate(text, voice=voice, rate=seg_rate, pitch=pitch)
         await communicate.save(seg_path)
@@ -163,7 +163,6 @@ def _mix_segments(seg_files: list, duration: float, output_path: str) -> str:
 
 def generate_tts(srt_content: str, output_path: str, duration: float,
                  voice: str = "ko-KR-SunHiNeural",
-                 rate: str = "-5%",
                  engine: str = "edge") -> str:
     """
     SRT의 각 자막 줄을 음성으로 변환 → 타이밍에 맞춰 하나의 파일로 합성.
@@ -184,12 +183,12 @@ def generate_tts(srt_content: str, output_path: str, duration: float,
                 if "402" in err_msg or "payment_required" in err_msg or "paid_plan" in err_msg:
                     print(f"[TTS] ElevenLabs 유료 플랜 필요 - edge_tts로 자동 전환: {err_msg}")
                     seg_files = _run_async(
-                        _edge_tts_segments(entries, "ko-KR-SunHiNeural", rate, tmpdir)
+                        _edge_tts_segments(entries, "ko-KR-SunHiNeural", tmpdir)
                     )
                 else:
                     raise
         else:
-            seg_files = _run_async(_edge_tts_segments(entries, voice, rate, tmpdir))
+            seg_files = _run_async(_edge_tts_segments(entries, voice, tmpdir))
 
         if not seg_files:
             return ""

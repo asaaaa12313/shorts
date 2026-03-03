@@ -20,6 +20,9 @@ MIN_CLIP_DURATION = 2.0  # 클립 최소 표시 시간 (초)
 # --- 줌 효과 ---
 ZOOM_AMOUNT = 0.12  # 12%
 
+# --- 색보정 (참고 영상 스타일: 선명하고 밝은 색감) ---
+COLOR_FILTER = "eq=saturation=1.2:contrast=1.1:brightness=0.03"
+
 # --- 속도 변화 ---
 SPEED_EFFECTS = [1.0, 1.0, 1.0, 0.8, 1.2]  # 60% 기본, 20% 슬로모션, 20% 빠르기
 
@@ -125,27 +128,27 @@ def _process_single_clip(path: str, index: int, clip_duration: float,
             f"pad={WIDTH}:{HEIGHT}:(ow-iw)/2:(oh-ih)/2:color=black@0[fgout];"
             f"[bgout][fgout]overlay=0:0"
         )
-        extras = [f for f in [zoom_f, speed_f] if f]
+        extras = [f for f in [zoom_f, speed_f, COLOR_FILTER] if f]
         if extras:
             vf += "," + ",".join(extras)
         cmd = [
             "ffmpeg", "-y", "-ss", str(start), "-i", path,
             "-t", str(duration),
             "-filter_complex", vf,
-            "-c:v", "libx264", "-preset", "fast", "-crf", "23",
+            "-c:v", "libx264", "-preset", "medium", "-crf", "18",
             "-an", "-r", str(FPS), out
         ]
     else:
         # 세로 영상
         vf = (f"scale={WIDTH}:{HEIGHT}:force_original_aspect_ratio=decrease,"
               f"pad={WIDTH}:{HEIGHT}:(ow-iw)/2:(oh-ih)/2:color=black")
-        extras = [f for f in [zoom_f, speed_f] if f]
+        extras = [f for f in [zoom_f, speed_f, COLOR_FILTER] if f]
         if extras:
             vf += "," + ",".join(extras)
         cmd = [
             "ffmpeg", "-y", "-ss", str(start), "-i", path,
             "-t", str(duration), "-vf", vf,
-            "-c:v", "libx264", "-preset", "fast", "-crf", "23",
+            "-c:v", "libx264", "-preset", "medium", "-crf", "18",
             "-an", "-r", str(FPS), out
         ]
 
@@ -235,7 +238,7 @@ def combine_clips(clip_paths: list[str], target_duration: float = TARGET_DURATIO
     cmd.extend([
         "-filter_complex", filter_complex,
         "-map", "[vout]",
-        "-c:v", "libx264", "-preset", "fast", "-crf", "23",
+        "-c:v", "libx264", "-preset", "medium", "-crf", "18",
         "-r", str(FPS),
         "-t", str(target_duration),
         "-an",

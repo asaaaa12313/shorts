@@ -25,13 +25,15 @@ def process_shortform(self, job_id: str, clip_paths: list[str], options: dict) -
     job_dir.mkdir(exist_ok=True)
 
     try:
+        duration = options.get("duration", TARGET_DURATION)
+
         # 0. 클립 분석 및 선별 (많을 경우 15개로 축소)
         self.update_state(state="PROGRESS", meta={"step": "analyzing", "progress": 5})
         selected_paths = video_processor.select_best_clips(clip_paths, max_clips=15)
 
         # 1. 클립 결합 (줌 효과 + 전환 효과 포함)
         self.update_state(state="PROGRESS", meta={"step": "combining", "progress": 10})
-        combined_path = video_processor.combine_clips(selected_paths, TARGET_DURATION, job_id)
+        combined_path = video_processor.combine_clips(selected_paths, duration, job_id)
 
         subtitle_mode = options.get("subtitle_mode", "ai")
         srt_content = ""
@@ -43,7 +45,7 @@ def process_shortform(self, job_id: str, clip_paths: list[str], options: dict) -
 
             if subtitle_mode == "manual" and options.get("subtitle_text"):
                 srt_content = subtitle_gen.generate_subtitles_from_text(
-                    options["subtitle_text"], srt_path, TARGET_DURATION
+                    options["subtitle_text"], srt_path, duration
                 )
             else:
                 srt_content = subtitle_gen.generate_subtitles(
@@ -58,7 +60,7 @@ def process_shortform(self, job_id: str, clip_paths: list[str], options: dict) -
             self.update_state(state="PROGRESS", meta={"step": "tts", "progress": 40})
             tts_path = str(job_dir / "tts.m4a")
             tts_gen.generate_tts(
-                srt_content, tts_path, TARGET_DURATION,
+                srt_content, tts_path, duration,
                 voice=options.get("voice_id") or "ko-KR-SunHiNeural",
                 engine=options.get("tts_engine", "edge"),
             )
@@ -79,7 +81,7 @@ def process_shortform(self, job_id: str, clip_paths: list[str], options: dict) -
             self.update_state(state="PROGRESS", meta={"step": "motion_frames", "progress": 60})
             frames_dir = str(job_dir / "frames")
             motion_subtitle.generate_frames(
-                srt_content, TARGET_DURATION, frames_dir,
+                srt_content, duration, frames_dir,
                 effect=options.get("subtitle_effect", ""),
                 color_scheme=options.get("subtitle_color", ""),
             )
@@ -97,7 +99,7 @@ def process_shortform(self, job_id: str, clip_paths: list[str], options: dict) -
             frames_dir=frames_dir,
             bgm_path=bgm_info.get("path", ""),
             output_path=output_path,
-            duration=TARGET_DURATION,
+            duration=duration,
             tts_path=tts_path,
         )
 

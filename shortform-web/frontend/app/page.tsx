@@ -34,6 +34,7 @@ export default function Home() {
   const [voiceEnabled, setVoiceEnabled] = useState(false);
   const [voiceId, setVoiceId] = useState("ko-KR-SunHiNeural");
   const [ttsEngine, setTtsEngine] = useState("edge");
+  const [duration, setDuration] = useState(15);
 
   // --- 자막 입히기 탭 ---
   const [addSubFile, setAddSubFile] = useState<File | null>(null);
@@ -112,6 +113,7 @@ export default function Home() {
         voice_enabled: voiceEnabled,
         voice_id: voiceId,
         tts_engine: ttsEngine,
+        duration,
       };
 
       if (sourceMode === "drive") {
@@ -181,6 +183,7 @@ export default function Home() {
     setVoiceEnabled(false);
     setVoiceId("ko-KR-SunHiNeural");
     setTtsEngine("edge");
+    setDuration(15);
     setProgress(0);
     setStep("");
     setResultFilename("");
@@ -193,7 +196,7 @@ export default function Home() {
     <div className="max-w-2xl mx-auto px-4 py-8">
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold mb-2">숏폼 자동 생성기</h1>
-        <p className="text-gray-400">영상 클립으로 15초 숏폼을 자동으로 만들어드립니다</p>
+        <p className="text-gray-400">영상 클립으로 숏폼을 자동으로 만들어드립니다</p>
       </div>
 
       {phase === "upload" && (
@@ -256,12 +259,28 @@ export default function Home() {
               </section>
 
               <section>
-                <h2 className="text-lg font-semibold mb-3">3. BGM 장르</h2>
+                <h2 className="text-lg font-semibold mb-3">3. 영상 길이</h2>
+                <div className="flex gap-2">
+                  {[15, 17, 20].map((d) => (
+                    <button
+                      key={d}
+                      onClick={() => setDuration(d)}
+                      className={`flex-1 py-2 rounded-lg text-sm font-bold transition-colors
+                        ${duration === d ? "bg-blue-600" : "bg-gray-800 text-gray-300 hover:bg-gray-700"}`}
+                    >
+                      {d}초
+                    </button>
+                  ))}
+                </div>
+              </section>
+
+              <section>
+                <h2 className="text-lg font-semibold mb-3">4. BGM 장르</h2>
                 <BgmSelector selected={bgmGenre} onSelect={setBgmGenre} />
               </section>
 
               <section>
-                <h2 className="text-lg font-semibold mb-3">4. 자막</h2>
+                <h2 className="text-lg font-semibold mb-3">5. 자막</h2>
                 <div className="flex gap-2 mb-3">
                   {(["ai", "manual", "none"] as const).map((mode) => (
                     <button

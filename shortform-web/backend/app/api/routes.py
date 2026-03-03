@@ -27,6 +27,7 @@ class GenerateRequest(BaseModel):
     voice_enabled: bool = False  # AI 음성 나레이션 ON/OFF
     voice_id: str = ""  # 음성 ID (ko-KR-SunHiNeural 등)
     tts_engine: str = "edge"  # "edge" (무료) | "elevenlabs" (프리미엄)
+    duration: float = 15.0  # 영상 길이 (15~20초)
     # Google Drive에서 직접 가져올 때
     gdrive_business: str = ""
     gdrive_clip_paths: list[str] = []
@@ -126,6 +127,7 @@ async def generate_shortform(req: GenerateRequest):
         "voice_enabled": req.voice_enabled,
         "voice_id": req.voice_id,
         "tts_engine": req.tts_engine,
+        "duration": max(15.0, min(20.0, req.duration)),
     }
 
     task = process_shortform.delay(job_id, clip_paths, options)
