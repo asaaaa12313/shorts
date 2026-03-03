@@ -19,12 +19,13 @@ PROMPT = """
 - 자막 내용은 해당 타임코드 시점에 화면에 보이는 것을 기반으로 작성하세요.
 - 장면이 바뀌기 전에 자막이 끝나도록 타이밍을 조절하세요.
 
-[자막 예시]
-1번: "여기 분위기 대박!" (후킹)
-2번: "수제 디저트 맛집" (포인트)
-3번: "이 비주얼 실화?" (감탄)
-4번: "인테리어도 감성적" (포인트)
-5번: "지금 바로 방문!" (CTA)
+[자막 구조 - 반드시 이 순서를 따르세요]
+1번: 후킹 - 시선을 끄는 감탄사/질문 (예: "여기 분위기 대박!")
+2~4번: 포인트 - 영상에 보이는 것 기반 핵심 설명 (예: "수제 디저트 맛집", "이 비주얼 실화?")
+5번(마지막): CTA - 반드시 업체명을 포함한 방문 유도 (예: "{업체명}으로 오세요!", "{업체명} 지금 바로!")
+
+[중요] 마지막 자막은 반드시 업체명이 들어간 CTA여야 합니다.
+예: "그로브반포로 오세요!", "코코스키 방문하세요!", "XX카페 지금 바로!"
 
 [자막 톤]
 - 숏폼 트렌디한 톤. 딱딱하지 않게.
@@ -52,17 +53,20 @@ BUSINESS_TYPE_HINTS = {
 
 
 def generate_subtitles(video_path: str, output_srt_path: str, api_key: str = "",
-                       business_type: str = "") -> str:
+                       business_type: str = "", business_name: str = "") -> str:
     """영상을 Gemini API에 업로드하여 SRT 자막 생성"""
     key = api_key or GEMINI_API_KEY
     if not key:
         raise ValueError("GEMINI_API_KEY가 설정되지 않았습니다")
 
-    # 업종 힌트 추가
+    # 업종 힌트 + 업체명 추가
     prompt = PROMPT
+    if business_name:
+        prompt = prompt.replace("{업체명}", business_name)
+        prompt = f"[업체명] {business_name}\n" + prompt
     hint = BUSINESS_TYPE_HINTS.get(business_type, "")
     if hint:
-        prompt = f"[업종 힌트] {hint}\n\n{PROMPT}"
+        prompt = f"[업종 힌트] {hint}\n\n{prompt}"
 
     client = genai.Client(api_key=key)
     video_file = None

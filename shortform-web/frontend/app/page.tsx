@@ -305,7 +305,7 @@ export default function Home() {
                   <textarea
                     value={subtitleText}
                     onChange={(e) => setSubtitleText(e.target.value)}
-                    placeholder={"한 줄에 하나씩 자막을 입력하세요\n예:\n그로브 반포\n반포에서 만나는 감성 카페\n따뜻한 공간"}
+                    placeholder={"한 줄에 하나씩 자막을 입력하세요\n예:\n여기 분위기 대박!\n감성 가득한 공간\n이 비주얼 실화?\n그로브반포로 오세요!"}
                     rows={5}
                     className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-500"
                   />
@@ -390,7 +390,7 @@ export default function Home() {
                 <textarea
                   value={addSubText}
                   onChange={(e) => setAddSubText(e.target.value)}
-                  placeholder={"한 줄에 하나씩 자막을 입력하세요\n예:\n그로브 반포\n감성 카페\n지금 방문하세요!"}
+                  placeholder={"한 줄에 하나씩 자막을 입력하세요\n예:\n여기 분위기 대박!\n감성 가득한 공간\n이 비주얼 실화?\n그로브반포로 오세요!"}
                   rows={5}
                   className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-500"
                 />

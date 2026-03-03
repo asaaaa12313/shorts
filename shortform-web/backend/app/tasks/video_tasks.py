@@ -52,6 +52,7 @@ def process_shortform(self, job_id: str, clip_paths: list[str], options: dict) -
                     combined_path, srt_path,
                     api_key=options.get("gemini_api_key", ""),
                     business_type=options.get("business_type", ""),
+                    business_name=options.get("business_name", ""),
                 )
 
         # 2.5. TTS 음성 생성 (자막이 있고 음성 ON일 때)
