@@ -162,6 +162,9 @@ def combine_clips(clip_paths: list[str], target_duration: float = TARGET_DURATIO
         clip_paths = [clip_paths[int(i * step)] for i in range(max_clips)]
         n = len(clip_paths)
 
+    # 매번 다른 순서로 재생되도록 셔플
+    clip_paths = list(clip_paths)
+    random.shuffle(clip_paths)
     use_transitions = n >= 2
     td = TRANSITION_DURATION if use_transitions else 0
 

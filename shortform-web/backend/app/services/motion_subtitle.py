@@ -15,6 +15,12 @@ FONT_FILES = [
     "GmarketSansBold.otf",
     "NanumSquareRoundEB.ttf",
     "NanumSquareB.ttf",
+    "BlackHanSans-Regular.ttf",
+    "DoHyeon-Regular.ttf",
+    "Jua-Regular.ttf",
+    "Gasoek-One.ttf",
+    "SingleDay-Regular.ttf",
+    "Dongle-Bold.ttf",
 ]
 AVAILABLE_FONTS = [str(FONTS_DIR / f) for f in FONT_FILES if (FONTS_DIR / f).exists()]
 if not AVAILABLE_FONTS:
@@ -26,6 +32,7 @@ EFFECTS = [
     "zoom_in", "zoom_out", "rotate_in", "slide_right", "typewriter",
 ]
 Y_POSITIONS = [0.35, 0.42, 0.50, 0.38, 0.45, 0.40, 0.48, 0.36, 0.44, 0.46]
+TEXT_MARGIN = 40  # 화면 양쪽 여백 (px)
 
 # --- 강조 키워드 (자동 감지) ---
 EMPHASIS_KEYWORDS = {
@@ -397,11 +404,16 @@ def _render_line_segments(img: Image.Image, draw: ImageDraw.ImageDraw,
 
         tmp = tmp.rotate(-fx["angle"], expand=True, resample=Image.BICUBIC)
         paste_x = (WIDTH - tmp.width) // 2 + fx.get("x_offset", 0)
+        paste_x = max(TEXT_MARGIN, min(paste_x, WIDTH - TEXT_MARGIN - tmp.width))
         paste_y = base_y - pad + (line_h - tmp.height) // 2
         img.paste(tmp, (paste_x, paste_y), tmp)
         draw = ImageDraw.Draw(img)
     else:
         start_x = (WIDTH - total_w) // 2 + fx.get("x_offset", 0)
+        if total_w <= WIDTH - 2 * TEXT_MARGIN:
+            start_x = max(TEXT_MARGIN, min(start_x, WIDTH - TEXT_MARGIN - total_w))
+        else:
+            start_x = (WIDTH - total_w) // 2  # 너무 넓으면 중앙 정렬
         x = start_x
         for sd in seg_data:
             seg = sd["seg"]
